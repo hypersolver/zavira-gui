@@ -6,7 +6,7 @@
 extern "C" {
 #endif
 
-enum zapp_page { ZAPP_SPLASH = 1, ZAPP_DESKTOP, ZAPP_DEMO };
+enum zapp_page { ZAPP_SPLASH = 1, ZAPP_DESKTOP, ZAPP_DEMO, ZAPP_BENCHMARK };
 
 struct zapp_point {
     int16_t x;
@@ -25,6 +25,8 @@ struct zapp_ui {
     void (*set_bar)(void *bar, unsigned int percent);
     void *(*triangle)(int x, int y, int size, uint32_t color);
     void (*set_triangle)(void *triangle, const struct zapp_point points[3]);
+    uint32_t (*redraw_count)(void);
+    void (*report_benchmark)(uint32_t redraws, uint32_t elapsed_ms);
 };
 
 void zapp_request(enum zapp_page page);

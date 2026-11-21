@@ -6,6 +6,7 @@ static const struct zapp_ui *ui;
 static enum zapp_page current_page;
 static void *uptime_label;
 static void *blades[4];
+static void *wind[3];
 static void *boot_progress;
 static uint32_t boot_started;
 static uint32_t last_second;
@@ -44,6 +45,22 @@ static void accent(int x, int y, int size, uint32_t color,
 	ui->set_triangle(ui->triangle(x, y, size, color), points);
 }
 
+static void animate_wind(unsigned int step)
+{
+	for (unsigned int i = 0; i < 3; i++) {
+		int bend = sine[(step + i * 3) % 24] / 32;
+		struct zapp_point points[3];
+
+		points[0].x = 0;
+		points[0].y = 32 - bend;
+		points[1].x = 120;
+		points[1].y = 12 + bend;
+		points[2].x = 239;
+		points[2].y = 24 - bend;
+		ui->set_triangle(wind[i], points);
+	}
+}
+
 void zapp_render(const struct zapp_ui *api, enum zapp_page page)
 {
 	ui = api;
@@ -56,6 +73,10 @@ void zapp_render(const struct zapp_ui *api, enum zapp_page page)
 		static const struct zapp_point facet[] = {{0, 119}, {240, 0}, {240, 119}};
 
 		accent(399, 359, 241, 0x242151, facet);
+		wind[0] = ui->triangle(0, 186, 240, 0x2b3266);
+		wind[1] = ui->triangle(404, 104, 240, 0x312360);
+		wind[2] = ui->triangle(399, 127, 240, 0x263e77);
+		animate_wind(0);
 		for (unsigned int i = 0; i < 4; i++) {
 			blades[i] = ui->triangle(240, 83, 160, colors[i]);
 		}
@@ -84,7 +105,7 @@ void zapp_render(const struct zapp_ui *api, enum zapp_page page)
 	ui->panel(24, 97, 338, 2, 0x8069ff);
 	ui->label(44, 114, "App Launcher", 0xf1eaff, 1);
 	ui->button(45, 180, 200, 76, "LVGL Demo", 0x52409c, ZAPP_DEMO);
-	ui->label(45, 271, "Launch with OPEN LVGL over UART", 0xaeb6e9, 0);
+	ui->button(45, 269, 270, 45, "LVGL Benchmark", 0x52409c, ZAPP_BENCHMARK);
 
 	ui->panel(0, 432, 640, 48, 0x211d46);
 	ui->panel(0, 432, 640, 2, 0x6651cf);
@@ -112,6 +133,7 @@ void zapp_tick(uint32_t now)
 		if (step != last_second) {
 			last_second = step;
 			rotate_pinwheel(step);
+			animate_wind(step);
 			ui->set_bar(boot_progress, elapsed / 20);
 		}
 		return;
